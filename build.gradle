@@ -1,0 +1,80 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.4'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'jacoco'
+	id 'jacoco-report-aggregation'
+}
+
+group = 'io.github.gabrielmsouza'
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-web') {
+		exclude module: 'spring-boot-starter-tomcat'
+	}
+	implementation('org.springframework.boot:spring-boot-starter-undertow')
+	implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+	implementation('org.springframework.boot:spring-boot-starter-mail')
+
+	implementation("com.fasterxml.jackson.module:jackson-module-blackbird")
+
+	implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0') {
+		exclude group: 'org.springdoc', module: 'springdoc-openapi-ui'
+	}
+
+	implementation('ch.qos.logback:logback-classic:1.4.14')
+	implementation('net.logstash.logback:logstash-logback-encoder:7.4')
+
+	runtimeOnly('com.h2database:h2')
+
+	testImplementation("net.datafaker:datafaker:2.1.0")
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+task unitTests(type: Test, group: "verification") {
+	useJUnitPlatform {
+		includeTags("unitTest")
+	}
+}
+
+task integrationTests(type: Test, group: "verification") {
+	useJUnitPlatform {
+		includeTags("integrationTest")
+	}
+}
+
+testCodeCoverageReport {
+	reports {
+		xml {
+			enabled true
+			destination file("$rootDir/build/reports/jacooco/test/jacocoTestResport.xml")
+		}
+
+		html {
+			enabled true
+			destination file("$rootDir/build/reports/jacooco/test/")
+		}
+	}
+}
+
+tasks.named("jacocoTestReport") {
+	dependsOn tasks.named("testCodeCoverageReport", JacocoReport)
+}
